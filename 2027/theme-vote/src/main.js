@@ -4,6 +4,7 @@ import './main.css';
 import { THEMES, DENS } from '../../shared/themes.js';
 import { carFor, classicCar } from '../../shared/art.js';
 import { getStatus, castVote, store } from './api.js';
+import { sfx, mountSoundToggle, soundReady, wakeAudio } from './sfx.js';
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Dev-only: lets automated testing advance animations when the tab is in the background.
@@ -98,19 +99,34 @@ function setupHero() {
     return tl;
   };
 
+  // Starting lights: one beep per red light, then a buzzer on green.
+  // On first load most phones block sound until a tap, so the beeps only play if the
+  // browser already allows audio (soundReady). Tapping the track replays it with sound.
+  const countdown = (timeline, { alwaysSound = false } = {}) => {
+    const canBeep = () => alwaysSound || soundReady();
+    bulbs.forEach((b, i) =>
+      timeline.call(() => {
+        b.classList.add('on');
+        if (canBeep()) sfx.beep();
+      }, null, i * 0.32),
+    );
+    timeline.call(
+      () => {
+        bulbs.forEach((b) => {
+          b.classList.remove('on');
+          b.classList.add('go');
+        });
+        if (canBeep()) sfx.buzz();
+      },
+      null,
+      5 * 0.32 + 0.25,
+    );
+    return timeline;
+  };
+
   const tl = gsap.timeline({ delay: 0.25 });
   gsap.set(racers, { x: (i, r) => -r.offsetWidth - 30 });
-  bulbs.forEach((b, i) => tl.call(() => b.classList.add('on'), null, i * 0.32));
-  tl.call(
-    () => {
-      bulbs.forEach((b) => {
-        b.classList.remove('on');
-        b.classList.add('go');
-      });
-    },
-    null,
-    5 * 0.32 + 0.25,
-  );
+  countdown(tl);
   tl.add(race(), '>');
   tl.from('.title-word', { scale: 2.4, opacity: 0, duration: 0.55, ease: 'back.out(2.2)' }, '<+0.3');
   tl.from('.title-year', { scale: 0, rotation: 40, duration: 0.6, ease: 'back.out(3)' }, '>-0.15');
@@ -118,9 +134,21 @@ function setupHero() {
   tl.from('.hero-sub .you', { scale: 1.8, rotation: -12, duration: 0.5, ease: 'back.out(3)' }, '<');
   tl.from('.hero-cta', { y: 30, opacity: 0, duration: 0.45, ease: 'back.out(2)' }, '>-0.1');
 
-  // Tap the track to race again.
+  // Tap the track to run the whole countdown and race again, with sound.
+  let replaying = false;
   $('.track').addEventListener('click', () => {
-    if (!gsap.isTweening(racers)) race();
+    if (replaying || gsap.isTweening(racers) || tl.progress() < 1) return;
+    replaying = true;
+    wakeAudio();
+    bulbs.forEach((b) => b.classList.remove('on', 'go'));
+    gsap.to(racers, { x: (i, r) => -r.offsetWidth - 30, duration: 0.35, ease: 'power2.in' });
+    const again = gsap.timeline({ delay: 0.4, onComplete: () => (replaying = false) });
+    countdown(again, { alwaysSound: true });
+    again.call(() => {
+      sfx.rev(1.1);
+      setTimeout(() => sfx.whoosh(0.7), 750);
+    });
+    again.add(race(), '<');
   });
   window.addEventListener('resize', () => {
     if (!gsap.isTweening(racers) && tl.progress() === 1) racers.forEach((r) => gsap.set(r, { x: endX(r) }));
@@ -182,7 +210,10 @@ function renderCards() {
       back.setAttribute('aria-hidden', String(!toBack));
       front.toggleAttribute('inert', toBack);
     };
-    btn.addEventListener('click', () => flip(!card.classList.contains('flipped')));
+    btn.addEventListener('click', () => {
+      sfx.swish();
+      flip(!card.classList.contains('flipped'));
+    });
     $('.back-pick', card).addEventListener('click', () => {
       const input = $('input', card);
       input.checked = true;
@@ -198,6 +229,7 @@ function renderCards() {
     cardsEl.classList.add('has-pick');
     $$('.card', cardsEl).forEach((c) => c.classList.toggle('is-picked', c === card));
     revCar(card);
+    sfx.theme(card.dataset.theme);
     updateTicket();
   });
 
@@ -294,6 +326,7 @@ function updateTicket() {
 function showError(msg, focusEl) {
   errorEl.textContent = msg;
   errorEl.hidden = false;
+  sfx.bonk();
   if (!reduce) gsap.fromTo(errorEl, { x: -10 }, { x: 0, duration: 0.5, ease: 'elastic.out(1.4, 0.3)' });
   if (focusEl) {
     focusEl.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
@@ -313,6 +346,7 @@ async function onSubmit(e) {
 
   voteBtn.disabled = true;
   $('.btn-vote-label').textContent = 'Revving up…';
+  sfx.rev(0.8);
   const res = await castVote(v);
   voteBtn.disabled = false;
   $('.btn-vote-label').textContent = 'Cast my vote!';
@@ -360,20 +394,26 @@ function celebrate(theme, name) {
       resolve();
     };
     if (reduce) {
+      sfx.chime();
       setTimeout(done, 2200);
       return;
     }
     gsap
       .timeline({ onComplete: done })
       .from('.celebrate-bg', { scaleY: 0, transformOrigin: '50% 100%', duration: 0.35, ease: 'power3.out' })
+      .call(() => sfx.stamp())
       .from('.celebrate-word', { scale: 3, opacity: 0, rotation: -8, duration: 0.5, ease: 'back.out(2)' }, '-=0.05')
+      .call(() => sfx.whoosh(0.6), null, '-=0.25')
       .fromTo('.celebrate-car', { x: '-150vw' }, { x: 0, duration: 0.8, ease: 'power4.out' }, '-=0.25')
       .call(() => {
         burst(0.15);
         burst(0.85);
+        sfx.chime();
+        [0, 1, 2, 3].forEach((i) => setTimeout(() => sfx.pop(1 + i * 0.15), 120 + i * 110));
       }, null, '-=0.3')
       .to('.celebrate-car', { y: -10, duration: 0.18, yoyo: true, repeat: 3, ease: 'sine.inOut' })
-      .to('.celebrate-car', { x: '120vw', duration: 0.55, ease: 'power3.in' }, '+=0.7')
+      .call(() => sfx.rev(0.6), null, '+=0.55')
+      .to('.celebrate-car', { x: '120vw', duration: 0.55, ease: 'power3.in' }, '+=0.15')
       .to(el, { opacity: 0, duration: 0.35 }, '-=0.15');
   });
 }
@@ -412,6 +452,10 @@ function updateCount(total, goal) {
     prog.hidden = true;
   }
 
+  // A soft tick as the odometer rolls (silent until the visitor has tapped the page).
+  if (lastTotal !== null && total > lastTotal) {
+    for (let i = 0; i < Math.min(4, total - lastTotal); i++) setTimeout(() => sfx.tick(), i * 120);
+  }
   if (lastTotal !== null && total > lastTotal && !reduce) {
     gsap.fromTo('.pit-card', { scale: 1.04 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
   }
@@ -490,12 +534,20 @@ function init() {
   $('#lastInitial').addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^\p{L}]/gu, '').slice(0, 1).toUpperCase();
   });
+  // Each den chip pops a little higher than the last.
+  form.addEventListener('change', (e) => {
+    if (e.target.name !== 'den') return;
+    sfx.pop(1 + DENS.findIndex((d) => d.id === e.target.value) * 0.12);
+  });
+  $('.hero-cta').addEventListener('click', () => sfx.pop(1.1));
   $('#vote-again').addEventListener('click', () => {
+    sfx.swish();
     votingAgain = true;
     setMode('open');
     $('#themes').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   });
 
+  mountSoundToggle();
   if (import.meta.env.DEV) addDevResetLink();
 
   refreshStatus();

@@ -178,6 +178,37 @@ svg {
   --btn-ink: var(--ink);
 }
 
+/* --------------------------------------------------------- sound toggle */
+.sound-toggle {
+  position: fixed;
+  z-index: 40;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 3px solid #07070f;
+  border-radius: 50%;
+  background: #fff4df;
+  color: #1b1b2f;
+  box-shadow: 0 4px 0 #07070f;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sound-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+.sound-toggle[aria-pressed='false'] {
+  background: #c9c5de;
+}
+.sound-toggle:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #07070f;
+}
+
 /* --------------------------------------------------------- checker strip */
 .checker {
   height: 22px;

@@ -4,6 +4,7 @@ import './reveal.css';
 import { THEMES } from '../../shared/themes.js';
 import { carFor } from '../../shared/art.js';
 import { request, store } from './api.js';
+import { sfx, mountSoundToggle } from './sfx.js';
 
 // Dev-only: lets automated testing advance animations when the tab is in the background.
 if (import.meta.env.DEV) window.__gsap = gsap;
@@ -110,6 +111,7 @@ function runRace() {
 
   if (reduce) {
     bulbs.forEach((b) => b.classList.add('go'));
+    sfx.go();
     finals.forEach((f) => {
       gsap.set(f.lane.querySelector('.rv-car'), { x: f.x });
       f.lane.classList.toggle('winner', f.isWinner);
@@ -120,10 +122,25 @@ function runRace() {
   }
 
   const tl = gsap.timeline();
-  bulbs.forEach((b, i) => tl.call(() => b.classList.add('on'), null, 0.4 + i * 0.6));
-  tl.call(() => bulbs.forEach((b) => (b.classList.remove('on'), b.classList.add('go'))), null, 0.4 + 5 * 0.6);
+  bulbs.forEach((b, i) =>
+    tl.call(() => {
+      b.classList.add('on');
+      sfx.beep();
+    }, null, 0.4 + i * 0.6),
+  );
+  tl.call(() => {
+    bulbs.forEach((b) => (b.classList.remove('on'), b.classList.add('go')));
+    sfx.go();
+  }, null, 0.4 + 5 * 0.6);
 
   const start = 0.4 + 5 * 0.6 + 0.1;
+  // Engine roar through the race, with a whoosh at each lead change.
+  [0, 1.2, 2.6, 4.0].forEach((t, i) =>
+    tl.call(() => {
+      sfx.rev(1.3);
+      if (i) sfx.whoosh(0.6);
+    }, null, start + t),
+  );
   finals.forEach((f, i) => {
     const car = f.lane.querySelector('.rv-car');
     car.firstElementChild.classList.add('spin');
@@ -148,8 +165,12 @@ function runRace() {
   });
   tl.call(() => {
     finals.forEach((f) => f.lane.classList.toggle('winner', f.isWinner));
+    sfx.stamp();
   });
-  if (showCounts) tl.to('.rv-lane-count', { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.15 });
+  if (showCounts) {
+    tl.call(() => [0, 1, 2].forEach((i) => setTimeout(() => sfx.pop(1 + i * 0.15), i * 150)));
+    tl.to('.rv-lane-count', { scale: 1, duration: 0.5, ease: 'back.out(3)', stagger: 0.15 }, '<');
+  }
   tl.call(showWinner, null, '+=1.6');
 }
 
@@ -177,6 +198,7 @@ function showWinner() {
 
   if (reduce) {
     $('#drum').hidden = true;
+    sfx.chime();
     return;
   }
   const colors = theme ? [theme.colors.main, theme.colors.accent, '#ffffff', '#1b1b2f'] : undefined;
@@ -186,13 +208,18 @@ function showWinner() {
     .set('#win-card', { opacity: 0 })
     .from(win, { clipPath: 'circle(0% at 50% 50%)', duration: 0.6, ease: 'power3.out' })
     .from('#drum', { scale: 0.5, opacity: 0, duration: 0.4, ease: 'back.out(2)' })
+    .call(() => sfx.drumroll(2.4), null, '<')
     .to('#drum', { scale: 1.1, duration: 2.2, ease: 'none' })
     .to('#drum', { opacity: 0, scale: 2, duration: 0.25 })
     .set('#drum', { display: 'none' })
     .set('#win-card', { opacity: 1 })
+    .call(() => sfx.whoosh(0.7))
     .from('#win-car', { x: '-120vw', duration: 0.8, ease: 'power4.out' })
-    .from('#win-name', { scale: 3, opacity: 0, rotation: -6, duration: 0.55, ease: 'back.out(2)' }, '-=0.3')
+    .call(() => sfx.stamp(), null, '-=0.3')
+    .from('#win-name', { scale: 3, opacity: 0, rotation: -6, duration: 0.55, ease: 'back.out(2)' }, '<')
     .call(() => {
+      sfx.chime();
+      theme && sfx.theme(theme.id);
       const end = Date.now() + 3500;
       (function frame() {
         confetti({ particleCount: 6, angle: 60, spread: 70, origin: { x: 0, y: 0.7 }, colors, zIndex: 30 });
@@ -202,7 +229,8 @@ function showWinner() {
       confetti({ particleCount: 200, spread: 120, startVelocity: 60, origin: { y: 0.6 }, colors, zIndex: 30 });
     })
     .from('#win-tag', { y: 40, opacity: 0, duration: 0.4, ease: 'back.out(2)' })
-    .from('#win-ideas li', { y: 30, opacity: 0, stagger: 0.12, duration: 0.35, ease: 'back.out(2)' })
+    .call(() => $$('#win-ideas li').forEach((_, i) => setTimeout(() => sfx.pop(1 + i * 0.12), i * 120)))
+    .from('#win-ideas li', { y: 30, opacity: 0, stagger: 0.12, duration: 0.35, ease: 'back.out(2)' }, '<')
     .from(['#win-counts', '.rv-win-actions'], { opacity: 0, duration: 0.4 });
 }
 
@@ -216,6 +244,8 @@ $('#fullscreen').addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen?.();
 });
+
+mountSoundToggle();
 
 // Leaders who are signed in on the leader page in this tab session can preview right away.
 unlock(store.get('sessionStorage', KEY) || store.get('sessionStorage', 'p210-leader-code') || '');
