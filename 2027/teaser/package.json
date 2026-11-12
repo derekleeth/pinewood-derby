@@ -1,0 +1,21 @@
+{
+  "name": "pack210-hype-video-2027",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.jsx",
+    "sfx": "node scripts/make-sfx.mjs",
+    "render:band": "remotion render src/index.jsx HypeVertical out/pinewood-2027-band-vertical.mp4 --codec h264 --crf 18",
+    "render:wide": "remotion render src/index.jsx HypeWide out/pinewood-2027-wide.mp4 --codec h264 --crf 18",
+    "render:og": "remotion still src/index.jsx OgImage ../theme-vote/public/og.png",
+    "render": "npm run render:band && npm run render:wide && npm run render:og"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.543",
+    "@remotion/google-fonts": "4.0.543",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "4.0.543"
+  }
+}

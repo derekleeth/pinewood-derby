@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Leader Pit Lane</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="lead-top">
+      <div class="wrap lead-top-inner">
+        <h1>Leader pit lane</h1>
+        <div class="lead-top-actions" hidden>
+          <button class="btn btn-ghost btn-sm" id="refresh" type="button">Refresh</button>
+          <button class="btn btn-ghost btn-sm" id="logout" type="button">Lock</button>
+        </div>
+      </div>
+      <div class="checker" aria-hidden="true"></div>
+    </header>
+
+    <main class="wrap">
+      <!-- login -->
+      <section id="login" class="notice lead-login">
+        <h2>Leaders only</h2>
+        <p>Enter the leader passcode to see results and manage the vote.</p>
+        <form id="login-form">
+          <label class="field-label" for="code">Leader passcode</label>
+          <input class="input" id="code" type="password" autocomplete="current-password" required />
+          <p class="form-error" id="login-error" role="alert" hidden></p>
+          <button class="btn btn-red" type="submit">Open pit lane</button>
+        </form>
+      </section>
+
+      <div id="dash" hidden>
+        <!-- controls -->
+        <section class="panel">
+          <h2>Voting</h2>
+          <p class="state-line">Right now: <span class="state-badge" id="state-badge">…</span></p>
+          <div class="seg" role="group" aria-label="Voting state">
+            <button type="button" class="seg-btn" data-state="coming">Coming soon</button>
+            <button type="button" class="seg-btn" data-state="open">Open</button>
+            <button type="button" class="seg-btn" data-state="closed">Closed</button>
+          </div>
+          <p class="hint">Coming soon: families can look at the themes but can't vote. Open: voting is live. Closed: the form is hidden and the final count stays.</p>
+
+          <div class="grid-2">
+            <form id="close-form" class="mini-form">
+              <label class="field-label" for="closesAt">Auto-close at (optional, your local time)</label>
+              <input class="input" id="closesAt" type="datetime-local" />
+              <div class="row">
+                <button class="btn btn-sm" type="submit">Save</button>
+                <button class="btn btn-ghost btn-sm" type="button" id="clear-close">Clear</button>
+              </div>
+            </form>
+            <form id="goal-form" class="mini-form">
+              <label class="field-label" for="goal">Participation goal (scouts)</label>
+              <input class="input" id="goal" type="number" min="1" max="999" inputmode="numeric" placeholder="e.g. 60" />
+              <div class="row">
+                <button class="btn btn-sm" type="submit">Save</button>
+              </div>
+            </form>
+          </div>
+          <p class="toast" id="toast" role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- results -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Results</h2>
+            <span class="big-total"><span id="total">0</span> votes</span>
+          </div>
+          <div id="bars" class="bars"></div>
+          <div id="tie" class="tie" hidden>
+            <p><strong>It's a tie!</strong> Pick which theme wins so the reveal has one winner.</p>
+            <label class="field-label" for="override">Tie-breaker winner</label>
+            <select class="input" id="override"></select>
+          </div>
+        </section>
+
+        <!-- reveal -->
+        <section class="panel">
+          <h2>Reveal</h2>
+          <p>The reveal page at <a href="/reveal/" target="_blank" rel="noopener">/reveal/</a> plays an animated race to the winning theme.</p>
+          <ul class="hint-list">
+            <li>You can preview it any time with the leader passcode. Families can't see it.</li>
+            <li>After voting closes, anyone with the <strong>reveal passcode</strong> can open it, for example on a projector.</li>
+            <li>Turn on <strong>Publish</strong> to let every family open it with no passcode. The home page also shows a "See the winner!" button.</li>
+          </ul>
+          <label class="switch">
+            <input type="checkbox" id="published" />
+            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+            <span>Publish the reveal to all families (only works once voting is closed)</span>
+          </label>
+        </section>
+
+        <!-- votes -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Every vote</h2>
+            <button class="btn btn-sm" type="button" id="csv">Download CSV</button>
+          </div>
+          <p class="hint">Rows marked <span class="dup-tag">check</span> share a first name and den with another vote. They might be the same scout with a typo.</p>
+          <div class="table-wrap">
+            <table class="votes">
+              <thead>
+                <tr><th>Scout</th><th>Den</th><th>Theme</th><th>When</th><th><span class="sr-only">Delete</span></th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="empty" hidden>No votes yet.</p>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="/src/leader.js"></script>
+  </body>
+</html>

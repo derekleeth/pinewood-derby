@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "theme-vote",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "2027/theme-vote", "run", "dev", "--", "--no-open"],
+      "port": 8899
+    }
+  ]
+}

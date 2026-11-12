@@ -1,0 +1,26 @@
+# In the Netlify UI, set Base directory = 2027/theme-vote
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  command = "npm run vite"
+  targetPort = 5273
+  port = 8899
+  framework = "#custom"
+
+# Keep private pages out of search results.
+[[headers]]
+  for = "/leader/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/reveal/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"

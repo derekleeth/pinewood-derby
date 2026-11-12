@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Pinewood 2027 Reveal</title>
+    <meta property="og:title" content="Pinewood 2027: The winning theme!" />
+    <meta property="og:image" content="https://pack210-derby.netlify.app/og.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body class="rv">
+    <!-- gate -->
+    <section id="gate" class="rv-gate">
+      <div class="notice rv-gate-card">
+        <div class="rv-gate-flag" aria-hidden="true"></div>
+        <h1 id="gate-title">The big reveal</h1>
+        <p id="gate-msg">Checking the pit lane…</p>
+        <form id="gate-form" hidden>
+          <label class="field-label" for="code">Reveal passcode</label>
+          <input class="input" id="code" type="password" autocomplete="off" required />
+          <p class="form-error" id="gate-error" role="alert" hidden></p>
+          <button class="btn btn-red" type="submit">Unlock</button>
+        </form>
+        <a class="btn btn-ghost" id="home-link" href="/" hidden>Back to the vote</a>
+      </div>
+    </section>
+
+    <!-- stage -->
+    <section id="stage" class="rv-stage" hidden>
+      <div class="rv-preview" id="preview-flag" hidden>Leader preview: voting is still open</div>
+
+      <div class="rv-start" id="start">
+        <p class="rv-eyebrow">Pack 210 · Pinewood 2027</p>
+        <h1 class="rv-title">Which theme<br />won?</h1>
+        <button class="btn btn-red rv-go" type="button" id="go">Start the race! <span aria-hidden="true">🏁</span></button>
+        <div class="rv-options">
+          <label><input type="checkbox" id="show-counts" checked /> Show vote counts</label>
+          <button class="btn btn-ghost btn-sm" type="button" id="fullscreen">Full screen</button>
+        </div>
+        <p class="rv-tie-warn" id="tie-warn" hidden>Heads up: it's a tie and no tie-breaker is set. Pick one on the leader page first.</p>
+      </div>
+
+      <div class="rv-race" id="race" hidden aria-hidden="true">
+        <div class="lights rv-lights">
+          <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        </div>
+        <div class="rv-track" id="track"></div>
+      </div>
+
+      <div class="rv-win" id="win" hidden>
+        <div class="rv-win-rays" aria-hidden="true"></div>
+        <p class="rv-drum" id="drum">And this year's theme is<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+        <div class="rv-win-card" id="win-card">
+          <div class="rv-win-car" id="win-car" aria-hidden="true"></div>
+          <h2 class="rv-win-name" id="win-name"></h2>
+          <p class="rv-win-tag" id="win-tag"></p>
+          <ul class="rv-win-ideas" id="win-ideas"></ul>
+          <p class="rv-win-counts" id="win-counts"></p>
+          <div class="rv-win-actions">
+            <button class="btn btn-ghost btn-sm" type="button" id="replay">Replay</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script type="module" src="/src/reveal.js"></script>
+  </body>
+</html>
