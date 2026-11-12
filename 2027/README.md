@@ -93,3 +93,28 @@ npm run render        # builds all three outputs below
 - **Sound:** it's made to work fully silent. Quiet sound effects are mixed low. They're generated from scratch by `npm run sfx` (ffmpeg), so there are no licensing questions.
 - **Timing:** base scene lengths are `BASE` in `src/Hype.jsx`.
 - **Licensing:** Remotion is free for individuals and small non-profits. See remotion.dev/license.
+
+### Tweaking the timing and rendering with your own file names
+
+The `npm run render` scripts always write to the same file names, so they overwrite earlier renders. To keep versions side by side, run Remotion directly with your own output name.
+
+**1. Change the timing in `src/Hype.jsx`:**
+
+- `HOLD` is the pause before each transition, in frames. At 30 fps, `60` is 2 seconds and `45` is 1.5 seconds.
+- The `extra` lines in `buildScenes()` adjust single scenes. For example, `cta: Math.round(hold * 1.1)` lets the ending link screen linger a bit longer.
+- `BASE` sets how long each scene runs before its pause.
+- The video length updates automatically. `src/index.jsx` works it out from `HOLD`.
+
+**2. Preview (optional):** run `npm run studio`. It opens a browser where you can play and scrub `HypeVertical` and `HypeWide`. Edits to `Hype.jsx` show up live.
+
+**3. Render with your own names** (run from `2027/teaser`):
+
+```bash
+npx remotion render src/index.jsx HypeVertical out/pinewood-2027-band-hold45.mp4 --codec h264 --crf 18
+npx remotion render src/index.jsx HypeWide out/pinewood-2027-wide-hold45.mp4 --codec h264 --crf 18
+```
+
+- **File name:** the last part (`out/….mp4`) can be anything. Putting the hold value in the name makes versions easy to compare.
+- **Short cuts:** use `HypeVerticalShort` and `HypeWideShort` to render the fast 20-second cuts with your own names.
+- **Smaller file:** if BAND complains about size, raise `--crf` to `23` or `26`. Higher numbers make smaller files with slightly lower quality.
+- **Don't use `--props`:** passing `--props '{"hold":45}'` changes the scene timing but not the video length, so the ending gets cut off or padded with blank frames. Change `HOLD` in the file instead.

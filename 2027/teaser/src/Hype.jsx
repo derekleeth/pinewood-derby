@@ -14,12 +14,12 @@ const BASE = { lights: 75, title: 95, you: 65, theme0: 90, theme1: 90, theme2: 9
 export function buildScenes(hold = 0) {
   const extra = {
     lights: Math.min(hold, 30), // nothing to read here, so a shorter pause
-    title: hold,
+    title: Math.round(hold * 0.8),
     you: hold,
-    theme0: hold,
-    theme1: hold,
-    theme2: hold,
-    cta: Math.round(hold * 0.75), // let the link linger at the end
+    theme0: Math.round(hold * 1.3),
+    theme1: Math.round(hold * 1.3),
+    theme2: Math.round(hold * 1.3),
+    cta: Math.round(hold * 1.6), // let the link linger at the end
   };
   let from = 0;
   const scenes = {};
