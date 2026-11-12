@@ -36,6 +36,15 @@ npm run dev               # netlify dev → http://localhost:8899
 
 `netlify dev` runs the functions and a local, sandboxed Blobs store, so local test votes never touch the real site.
 
+**Starting over locally:**
+
+```bash
+npm run reset              # wipe local votes AND settings (back to "Coming soon")
+npm run reset -- --votes   # wipe votes only; keep state, goal, and reveal settings
+```
+
+These commands work while the dev server is running. Also click **Dev only: reset this device** at the bottom of the home page. It clears what your browser remembers (who voted on this device, saved passcodes), so you see the vote form again. The button only exists in local dev and is never on the live site.
+
 ### First deploy (one time)
 
 1. In Netlify, choose **Add new project → Import an existing project → GitHub** and pick this repo.

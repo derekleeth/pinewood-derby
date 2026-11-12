@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "netlify dev",
+    "reset": "node scripts/reset-local.mjs",
     "vite": "vite --port 5273 --strictPort",
     "build": "vite build",
     "preview": "vite preview"

@@ -884,6 +884,20 @@ body[data-mode='closed'] #themes {
   font-size: 0.95rem;
 }
 
+/* dev-only reset button (never in the production build) */
+.dev-reset {
+  display: block;
+  margin: 0 auto max(20px, env(safe-area-inset-bottom));
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 3px dashed var(--ink-soft);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-inner {
     transition: none;

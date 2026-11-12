@@ -451,6 +451,30 @@ async function refreshStatus() {
   else if (document.body.dataset.mode === 'loading') $('#count-text').textContent = "Can't reach the pit crew. Retrying…";
 }
 
+/* =================================================================== dev reset */
+// Only exists under `npm run dev`; Vite strips it from the production build.
+// Clears what this browser remembers (who voted here, saved passcodes) so you can
+// test voting again. Pair it with `npm run reset` to wipe the local server data.
+function addDevResetLink() {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dev-reset';
+  btn.textContent = 'Dev only: reset this device';
+  btn.addEventListener('click', () => {
+    for (const area of ['localStorage', 'sessionStorage']) {
+      try {
+        Object.keys(window[area])
+          .filter((k) => k.startsWith('p210-'))
+          .forEach((k) => window[area].removeItem(k));
+      } catch {
+        /* storage blocked */
+      }
+    }
+    location.reload();
+  });
+  $('.site-foot').append(btn);
+}
+
 /* =================================================================== init */
 function init() {
   setupHero();
@@ -471,6 +495,8 @@ function init() {
     setMode('open');
     $('#themes').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   });
+
+  if (import.meta.env.DEV) addDevResetLink();
 
   refreshStatus();
   setInterval(() => {
