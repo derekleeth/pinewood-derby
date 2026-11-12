@@ -6,17 +6,31 @@ import {
 } from './parts.jsx';
 
 // ----------------------------------------------------------------- timing
-// 30 fps, 20 seconds. Every scene is built to read with the sound OFF.
-export const SCENES = {
-  lights: { from: 0, dur: 75 },
-  title: { from: 75, dur: 95 },
-  you: { from: 170, dur: 65 },
-  theme0: { from: 235, dur: 90 },
-  theme1: { from: 325, dur: 90 },
-  theme2: { from: 415, dur: 90 },
-  cta: { from: 505, dur: 95 },
-};
-export const DURATION = 600;
+// 30 fps. Every scene is built to read with the sound OFF.
+// `hold` adds extra frames at the end of each scene so there's time to read
+// before the next transition (0 = the original fast 20-second cut).
+const BASE = { lights: 75, title: 95, you: 65, theme0: 90, theme1: 90, theme2: 90, cta: 95 };
+
+export function buildScenes(hold = 0) {
+  const extra = {
+    lights: Math.min(hold, 30), // nothing to read here, so a shorter pause
+    title: hold,
+    you: hold,
+    theme0: hold,
+    theme1: hold,
+    theme2: hold,
+    cta: Math.round(hold * 0.75), // let the link linger at the end
+  };
+  let from = 0;
+  const scenes = {};
+  for (const [key, dur] of Object.entries(BASE)) {
+    scenes[key] = { from, dur: dur + extra[key] };
+    from += scenes[key].dur;
+  }
+  return { scenes, duration: from };
+}
+
+export const HOLD = 60; // ~2 seconds
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' };
 const useSpring = (delay, config = { damping: 11, mass: 0.7 }) => {
@@ -256,10 +270,9 @@ const ThemeBackground = ({ theme }) => {
   );
 };
 
-const ThemeScene = ({ theme, index }) => {
+const ThemeScene = ({ theme, index, dur }) => {
   const frame = useCurrentFrame();
   const { W, u, portrait } = useLayout();
-  const { dur } = SCENES[`theme${index}`];
   const wipe = interpolate(frame, [0, 10], [0, 150], { ...clamp, easing: Easing.out(Easing.cubic) });
   const carIn = useSpring(3, { damping: 12, mass: 0.9 });
   const exit = interpolate(frame, [dur - 10, dur], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
@@ -327,10 +340,66 @@ const ThemeScene = ({ theme, index }) => {
     </div>
   );
 
+  // "Ideas" speech bubble: makes it clear these are suggestions, not the only choices.
+  const bubble = spring({ frame: frame - 32, fps: 30, config: { damping: 8, mass: 0.5 } });
+  const wiggle = Math.sin(frame / 6) * 2;
+  const ideasBubble = (
+    <div
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16 * u,
+        padding: `${12 * u}px ${28 * u}px ${12 * u}px ${14 * u}px`,
+        background: '#fff',
+        border: `${6 * u}px solid ${INK}`,
+        borderRadius: 40 * u,
+        boxShadow: `0 ${8 * u}px 0 ${INK}`,
+        transform: `scale(${bubble}) rotate(${-3 + wiggle}deg)`,
+        transformOrigin: portrait ? '50% 100%' : '20% 100%',
+      }}
+    >
+      <span
+        style={{
+          padding: `${6 * u}px ${18 * u}px`,
+          background: YELLOW,
+          border: `${5 * u}px solid ${INK}`,
+          borderRadius: 999,
+          fontFamily: DISPLAY,
+          fontSize: (portrait ? 46 : 42) * u,
+          color: INK,
+          lineHeight: 1.1,
+        }}
+      >
+        IDEAS!
+      </span>
+      <span style={{ fontFamily: BODY, fontWeight: 900, fontSize: (portrait ? 42 : 38) * u, color: INK, whiteSpace: 'nowrap' }}>
+        Or invent your own!
+      </span>
+      {/* speech-bubble tail pointing down at the idea chips */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -22 * u,
+          left: portrait ? '50%' : 70 * u,
+          width: 34 * u,
+          height: 34 * u,
+          marginLeft: portrait ? -17 * u : 0,
+          background: '#fff',
+          borderRight: `${6 * u}px solid ${INK}`,
+          borderBottom: `${6 * u}px solid ${INK}`,
+          transform: 'rotate(45deg)',
+        }}
+      />
+    </div>
+  );
+
   const chips = (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: portrait ? 'center' : 'flex-start', gap: 34 * u }}>
+    {ideasBubble}
     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: portrait ? 'center' : 'flex-start', gap: 18 * u, maxWidth: portrait ? 1000 * u : 900 * u }}>
       {ideas.map((idea, i) => {
-        const s = spring({ frame: frame - (36 + i * 7), fps: 30, config: { damping: 9, mass: 0.5 } });
+        const s = spring({ frame: frame - (40 + i * 7), fps: 30, config: { damping: 9, mass: 0.5 } });
         return (
           <div
             key={idea}
@@ -351,6 +420,7 @@ const ThemeScene = ({ theme, index }) => {
           </div>
         );
       })}
+    </div>
     </div>
   );
 
@@ -379,8 +449,9 @@ const ThemeScene = ({ theme, index }) => {
         <Sfx at={3} name="rev" volume={theme.id === 'monster' ? 0.24 : 0.16} />
       )}
       <Sfx at={16} name="stamp" volume={0.32} />
+      <Sfx at={32} name="pop" volume={0.24} />
       {ideas.map((_, i) => (
-        <Sfx key={i} at={36 + i * 7} name={theme.id === 'sea' ? 'bubble' : 'pop'} volume={0.2} />
+        <Sfx key={i} at={40 + i * 7} name={theme.id === 'sea' ? 'bubble' : 'pop'} volume={0.2} />
       ))}
       <Sfx at={dur - 10} name="whoosh" volume={0.16} />
     </AbsoluteFill>
@@ -448,20 +519,23 @@ const Cta = () => {
 };
 
 /* ================================================================= ROOT */
-export const Hype = () => (
-  <AbsoluteFill style={{ background: ASPHALT, fontFamily: BODY }}>
-    <GlobalStyle />
-    <Sequence from={SCENES.lights.from} durationInFrames={SCENES.lights.dur}><Lights /></Sequence>
-    <Sequence from={SCENES.title.from} durationInFrames={SCENES.title.dur}><Title /></Sequence>
-    <Sequence from={SCENES.you.from} durationInFrames={SCENES.you.dur}><YouPick /></Sequence>
-    {THEMES.map((t, i) => (
-      <Sequence key={t.id} from={SCENES[`theme${i}`].from} durationInFrames={SCENES[`theme${i}`].dur}>
-        <ThemeScene theme={t} index={i} />
-      </Sequence>
-    ))}
-    <Sequence from={SCENES.cta.from} durationInFrames={SCENES.cta.dur}><Cta /></Sequence>
-  </AbsoluteFill>
-);
+export const Hype = ({ hold = HOLD }) => {
+  const { scenes: S } = buildScenes(hold);
+  return (
+    <AbsoluteFill style={{ background: ASPHALT, fontFamily: BODY }}>
+      <GlobalStyle />
+      <Sequence from={S.lights.from} durationInFrames={S.lights.dur}><Lights /></Sequence>
+      <Sequence from={S.title.from} durationInFrames={S.title.dur}><Title /></Sequence>
+      <Sequence from={S.you.from} durationInFrames={S.you.dur}><YouPick /></Sequence>
+      {THEMES.map((t, i) => (
+        <Sequence key={t.id} from={S[`theme${i}`].from} durationInFrames={S[`theme${i}`].dur}>
+          <ThemeScene theme={t} index={i} dur={S[`theme${i}`].dur} />
+        </Sequence>
+      ))}
+      <Sequence from={S.cta.from} durationInFrames={S.cta.dur}><Cta /></Sequence>
+    </AbsoluteFill>
+  );
+};
 
 /* ================================================================= OG IMAGE */
 export const OgImage = () => {

@@ -75,10 +75,12 @@ npm run render        # builds all three outputs below
 
 | Output | Use |
 | --- | --- |
-| `out/pinewood-2027-band-vertical.mp4` | 1080×1920, for BAND (phones) |
-| `out/pinewood-2027-wide.mp4` | 1920×1080, for email, YouTube, or a projector |
+| `out/pinewood-2027-band-vertical.mp4` | 1080×1920, for BAND (phones). About 32 seconds, with a ~2-second pause before each transition. |
+| `out/pinewood-2027-wide.mp4` | 1920×1080, for email, YouTube, or a projector. Same timing as the vertical. |
 | `../theme-vote/public/og.png` | Link preview image for BAND, texts, and email |
 
+`npm run render:short` builds the fast 20-second cuts (`*-20s.mp4`). They're smaller files, in case BAND has a size limit. The pause length is `HOLD` in `src/Hype.jsx`.
+
 - **Sound:** it's made to work fully silent. Quiet sound effects are mixed low. They're generated from scratch by `npm run sfx` (ffmpeg), so there are no licensing questions.
-- **Timing:** scene timing lives in `SCENES` in `src/Hype.jsx`.
+- **Timing:** base scene lengths are `BASE` in `src/Hype.jsx`.
 - **Licensing:** Remotion is free for individuals and small non-profits. See remotion.dev/license.

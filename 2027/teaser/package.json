@@ -9,7 +9,10 @@
     "render:band": "remotion render src/index.jsx HypeVertical out/pinewood-2027-band-vertical.mp4 --codec h264 --crf 18",
     "render:wide": "remotion render src/index.jsx HypeWide out/pinewood-2027-wide.mp4 --codec h264 --crf 18",
     "render:og": "remotion still src/index.jsx OgImage ../theme-vote/public/og.png",
-    "render": "npm run render:band && npm run render:wide && npm run render:og"
+    "render": "npm run render:band && npm run render:wide && npm run render:og",
+    "render:band-short": "remotion render src/index.jsx HypeVerticalShort out/pinewood-2027-band-vertical-20s.mp4 --codec h264 --crf 18",
+    "render:wide-short": "remotion render src/index.jsx HypeWideShort out/pinewood-2027-wide-20s.mp4 --codec h264 --crf 18",
+    "render:short": "npm run render:band-short && npm run render:wide-short"
   },
   "dependencies": {
     "@remotion/cli": "4.0.543",
