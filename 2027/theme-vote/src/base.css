@@ -65,6 +65,13 @@
   box-sizing: border-box;
 }
 
+/* The JS shows/hides panels with the `hidden` attribute. Without this, any class
+   that sets `display` (grid, flex, inline-flex) would override it and keep the
+   element on screen. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
